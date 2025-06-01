@@ -386,6 +386,7 @@ class ModifierManager:
 class POSE_TO_REST_OT_apply(bpy.types.Operator):
     bl_idname = "pose_to_rest.apply"
     bl_label = "Apply Current Pose as Rest"
+    bl_description = "Apply current pose as rest pose while preserving shape keys and drivers"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
