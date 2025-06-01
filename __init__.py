@@ -563,14 +563,14 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             # Clean up original mesh data
             try:
                 bpy.data.meshes.remove(orig_data)
-            except:
-                log("Warning: Could not remove original mesh data")
+            except Exception as e:
+                log(f"Warning: Could not remove original mesh data: {e}")
 
             # Remove receiver object
             try:
                 bpy.data.objects.remove(receiver)
-            except:
-                log("Warning: Could not remove receiver object")
+            except Exception as e:
+                log(f"Warning: Could not remove receiver object: {e}")
 
             log(f"Completed {obj.name}: {successful_transfers} shape keys processed")
             return (
@@ -584,8 +584,8 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             try:
                 if "receiver" in locals() and receiver:
                     delete_object(receiver)
-            except:
-                pass
+            except Exception as e:
+                log(f"Warning: Could not clean up temporary objects: {e}")
             return False, None
 
     def _initialize_and_validate(
