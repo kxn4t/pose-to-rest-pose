@@ -1,0 +1,40 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create addon ZIP
+        run: |
+          mkdir -p dist/pose-to-rest-pose
+          cp -r __init__.py LICENSE* README* dist/pose-to-rest-pose/
+          cd dist
+          zip -r "pose-to-rest-pose_${{ steps.version.outputs.VERSION }}.zip" pose-to-rest-pose/ \
+            -x "**/__pycache__/**" \
+            -x "**/.DS_Store" \
+            -x "**/*.pyc"
+          cd ..
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release v${{ steps.version.outputs.VERSION }}
+          draft: true
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
+          generate_release_notes: true
+          files: dist/pose-to-rest-pose_${{ steps.version.outputs.VERSION }}.zip
