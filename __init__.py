@@ -6,7 +6,7 @@
 bl_info = {
     "name": "Pose to Rest Pose",
     "author": "kxn4t",
-    "version": (0, 1, 0),
+    "version": (0, 1, 1),
     "blender": (3, 6, 0),
     "location": "View3D > Pose Mode > Pose > Apply",
     "description": "Apply current pose as rest pose while preserving shape keys and drivers",
