@@ -388,7 +388,9 @@ class ModifierManager:
 class POSE_TO_REST_OT_apply(bpy.types.Operator):
     bl_idname = "pose_to_rest.apply"
     bl_label = "Apply Current Pose as Rest"
-    bl_description = "Apply current pose as rest pose while preserving shape keys and drivers"
+    bl_description = (
+        "Apply current pose as rest pose while preserving shape keys and drivers"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -671,21 +673,31 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
     ) -> bool:
         """Apply current pose to armature rest pose"""
         log("STEP 3: Applying pose to armature rest pose")
-        bpy.ops.object.mode_set(mode="OBJECT")
-        bpy.ops.object.select_all(action="DESELECT")
-        context.view_layer.objects.active = armature
-        armature.select_set(True)
-        bpy.ops.object.mode_set(mode="POSE")
+
+        if not armature or armature.name not in bpy.data.objects:
+            self.report({"ERROR"}, "Invalid armature object")
+            return False
 
         try:
+            if bpy.context.view_layer.objects.active:
+                bpy.ops.object.mode_set(mode="OBJECT")
+
+            # Clear all selections
+            bpy.ops.object.select_all(action="DESELECT")
+
+            # Set the armature as active and selected
+            context.view_layer.objects.active = armature
+            armature.select_set(True)
+
+            # Apply the pose to rest pose
+            bpy.ops.object.mode_set(mode="POSE")
             bpy.ops.pose.armature_apply()
+            bpy.context.view_layer.update()
+            return True
+
         except Exception as e:
             self.report({"ERROR"}, f"Failed to apply pose to armature: {e}")
             return False
-
-        # Update the scene to ensure the new rest pose is applied
-        bpy.context.view_layer.update()
-        return True
 
     def _restore_all_data(
         self,
@@ -717,8 +729,10 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
     ) -> OperatorResultDict:
         """Restore original state and report results"""
         log("STEP 5: Restoring original state")
-        bpy.ops.object.mode_set(mode="OBJECT")
         context.view_layer.objects.active = armature
+        armature.select_set(True)
+        bpy.context.view_layer.update()
+        bpy.ops.object.mode_set(mode="OBJECT")
 
         if original_state["mode"] == "POSE":
             bpy.ops.object.mode_set(mode="POSE")
