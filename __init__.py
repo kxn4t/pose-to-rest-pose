@@ -181,8 +181,10 @@ def apply_armature_modifier_only(
             bpy.context.view_layer.objects.active = obj
 
             try:
-                bpy.ops.object.modifier_apply(modifier=modifier.name)
-                log(f"Applied armature modifier {modifier.name} on object {obj.name}")
+                # Store modifier name before applying (important for stability)
+                mod_name = modifier.name
+                bpy.ops.object.modifier_apply(modifier=mod_name)
+                log(f"Applied armature modifier {mod_name} on object {obj.name}")
             except RuntimeError as e:
                 log(f"Failed to apply armature modifier on {obj.name}: {e}")
                 raise e
