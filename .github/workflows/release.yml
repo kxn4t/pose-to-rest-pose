@@ -21,7 +21,7 @@ jobs:
       - name: Create addon ZIP
         run: |
           mkdir -p dist/pose-to-rest-pose
-          cp -r __init__.py LICENSE* README* dist/pose-to-rest-pose/
+          cp -r __init__.py translations.py LICENSE* README* dist/pose-to-rest-pose/
           cd dist
           zip -r "pose-to-rest-pose_${{ steps.version.outputs.VERSION }}.zip" pose-to-rest-pose/ \
             -x "**/__pycache__/**" \

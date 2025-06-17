@@ -6,7 +6,7 @@
 bl_info = {
     "name": "Pose to Rest Pose",
     "author": "kxn4t",
-    "version": (0, 1, 1),
+    "version": (0, 2, 0),
     "blender": (3, 6, 0),
     "location": "View3D > Pose Mode > Pose > Apply",
     "description": "Apply current pose as rest pose while preserving shape keys and drivers",
@@ -16,6 +16,8 @@ bl_info = {
 import bpy
 from bpy.props import PointerProperty
 from typing import List, Dict, Any, Optional, Tuple, Union
+
+from .translations import translations_dict
 
 ShapeKeyDataDict = Dict[str, Any]  # Shape key properties dictionary
 ShapeKeyDataList = List[ShapeKeyDataDict]  # List of shape key data
@@ -134,10 +136,12 @@ def validate_vertex_count_compatibility(
     shapekey_vertex_count = len(shapekey_obj.data.vertices)
 
     if base_vertex_count != shapekey_vertex_count:
-        error_msg = (
-            f"Cannot transfer shape key '{shapekey_name}': vertex count mismatch "
-            f"({base_vertex_count} vs {shapekey_vertex_count}). "
-            f"Check for modifiers that change vertex count (Decimate, Weld, etc.)."
+        error_msg = bpy.app.translations.pgettext(
+            "Cannot transfer shape key '{shapekey_name}': vertex count mismatch ({base_count} vs {shapekey_count}). Check for modifiers that change vertex count (Decimate, Weld, etc.)."
+        ).format(
+            shapekey_name=shapekey_name,
+            base_count=base_vertex_count,
+            shapekey_count=shapekey_vertex_count,
         )
         raise ValueError(error_msg)
 
@@ -148,7 +152,9 @@ def validate_shape_key_transfer(
     """Validate shape key transfer was successful"""
     # Check if shape keys exist at all
     if receiver.data.shape_keys is None:
-        error_msg = f"Cannot transfer shape key '{shapekey_name}': vertex count mismatch after modifiers."
+        error_msg = bpy.app.translations.pgettext(
+            "Cannot transfer shape key '{shapekey_name}': vertex count mismatch after modifiers"
+        ).format(shapekey_name=shapekey_name)
         raise ValueError(error_msg)
 
     # Check if the correct number of shape keys were transferred
@@ -156,9 +162,12 @@ def validate_shape_key_transfer(
         len(receiver.data.shape_keys.key_blocks) - 1
     )  # Exclude basis
     if current_shapekey_count != expected_shapekey_index:
-        error_msg = (
-            f"Shape key transfer failed for '{shapekey_name}': "
-            f"expected {expected_shapekey_index} keys, got {current_shapekey_count}."
+        error_msg = bpy.app.translations.pgettext(
+            "Shape key transfer failed for '{shapekey_name}': expected {expected_keys} keys, got {actual_keys}"
+        ).format(
+            shapekey_name=shapekey_name,
+            expected_keys=expected_shapekey_index,
+            actual_keys=current_shapekey_count,
         )
         raise ValueError(error_msg)
 
@@ -422,7 +431,10 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             )
 
             if armature_count > 1:
-                raise ValueError(f"Object '{obj.name}' has multiple Armature modifiers")
+                error_msg = bpy.app.translations.pgettext(
+                    "Object '{obj_name}' has multiple Armature modifiers"
+                ).format(obj_name=obj.name)
+                raise ValueError(error_msg)
             elif armature_count == 1:
                 # Check modifier order
                 if self.has_modifier_order_issue(obj, armature):
@@ -430,10 +442,9 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
                 affected_meshes.append(obj)
 
         if warning_meshes:
-            warning_msg = (
-                "Deformation modifiers before Armature modifier detected: "
-                + ", ".join(warning_meshes)
-            )
+            warning_msg = bpy.app.translations.pgettext(
+                "Deformation modifiers before Armature modifier detected: {mesh_list}"
+            ).format(mesh_list=", ".join(warning_meshes))
             raise ValueError(warning_msg)
 
         return affected_meshes
@@ -539,7 +550,10 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
                     if shapekey_obj:
                         delete_object(shapekey_obj)
                     log(f"Validation error for shape key {shapekey_name}: {ve}")
-                    raise ValueError(f"Shape key '{shapekey_name}': {ve}")
+                    error_msg = bpy.app.translations.pgettext(
+                        "Shape key '{shapekey_name}': {error}"
+                    ).format(shapekey_name=shapekey_name, error=ve)
+                    raise ValueError(error_msg)
                 except Exception as e:
                     # Clean up before re-raising error
                     if shapekey_obj:
@@ -650,17 +664,19 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             if isinstance(result, tuple):
                 success, original_obj = result
                 if not success:
-                    self.report(
-                        {"ERROR"}, f"Failed to process shape keys for {obj.name}"
-                    )
+                    error_msg = bpy.app.translations.pgettext(
+                        "Failed to process shape keys for {obj_name}"
+                    ).format(obj_name=obj.name)
+                    self.report({"ERROR"}, error_msg)
                     return None, None
                 original_objects[obj.name] = original_obj
             else:
                 # Handle case where no shape keys (returns True only)
                 if not result:
-                    self.report(
-                        {"ERROR"}, f"Failed to process shape keys for {obj.name}"
-                    )
+                    error_msg = bpy.app.translations.pgettext(
+                        "Failed to process shape keys for {obj_name}"
+                    ).format(obj_name=obj.name)
+                    self.report({"ERROR"}, error_msg)
                     return None, None
                 original_objects[obj.name] = obj
 
@@ -696,7 +712,10 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             return True
 
         except Exception as e:
-            self.report({"ERROR"}, f"Failed to apply pose to armature: {e}")
+            error_msg = bpy.app.translations.pgettext(
+                "Failed to apply pose to armature: {error}"
+            ).format(error=e)
+            self.report({"ERROR"}, error_msg)
             return False
 
     def _restore_all_data(
@@ -737,10 +756,10 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
         if original_state["mode"] == "POSE":
             bpy.ops.object.mode_set(mode="POSE")
 
-        self.report(
-            {"INFO"},
-            f"Applied pose as rest for {armature.name} and processed {len(processed_meshes)} meshes",
-        )
+        success_msg = bpy.app.translations.pgettext(
+            "Applied pose as rest for {armature_name} and processed {mesh_count} meshes"
+        ).format(armature_name=armature.name, mesh_count=len(processed_meshes))
+        self.report({"INFO"}, success_msg)
         return {"FINISHED"}
 
     def _handle_error_cleanup(self, original_state: OriginalStateDict) -> None:
@@ -797,7 +816,10 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             return {"CANCELLED"}
         except Exception as e:
             log(f"Critical error occurred: {e}")
-            self.report({"ERROR"}, f"Error occurred: {e}")
+            error_msg = bpy.app.translations.pgettext("Error occurred: {error}").format(
+                error=e
+            )
+            self.report({"ERROR"}, error_msg)
 
             if "original_state" in locals():
                 self._handle_error_cleanup(original_state)
@@ -826,12 +848,14 @@ def register() -> None:
         poll=lambda self, obj: obj.type == "ARMATURE",
     )
     bpy.types.VIEW3D_MT_pose_apply.append(pose_apply_menu_func)
+    bpy.app.translations.register(__name__, translations_dict)
 
 
 def unregister() -> None:
     bpy.utils.unregister_class(POSE_TO_REST_OT_apply)
     del bpy.types.Scene.pose_to_rest_armature
     bpy.types.VIEW3D_MT_pose_apply.remove(pose_apply_menu_func)
+    bpy.app.translations.unregister(__name__)
 
 
 if __name__ == "__main__":
