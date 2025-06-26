@@ -6,7 +6,7 @@
 bl_info = {
     "name": "Pose to Rest Pose",
     "author": "kxn4t",
-    "version": (0, 2, 0),
+    "version": (0, 2, 1),
     "blender": (3, 6, 0),
     "location": "View3D > Pose Mode > Pose > Apply",
     "description": "Apply current pose as rest pose while preserving shape keys and drivers",
@@ -836,7 +836,7 @@ def pose_apply_menu_func(self: bpy.types.Menu, context: bpy.types.Context) -> No
     """Add menu item to Pose > Apply menu"""
     layout = self.layout
     layout.separator()
-    layout.operator("pose_to_rest.apply", text="Apply Current Pose as Rest Pose")
+    layout.operator("pose_to_rest.apply", text=bpy.app.translations.pgettext("Apply Current Pose as Rest Pose"))
 
 
 def register() -> None:
