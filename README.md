@@ -24,7 +24,7 @@ A Blender addon for applying the current pose as rest pose while preserving shap
 3. Go to **Pose > Apply > Apply Current Pose as Rest Pose**
 
 The addon will automatically:
-- Detect all meshes with Armature modifiers targeting the selected armature
+- Detect all meshes with Armature modifiers targeting the selected armature, including those in other scenes
 - Preserve all shape keys and their properties
 - Apply the current pose to the armature's rest position
 - Restore all modifiers and drivers
@@ -41,8 +41,7 @@ This addon uses algorithms from [SKkeeper](https://github.com/smokejohn/SKkeeper
 ### Driver Handling
 - Automatically detects existing drivers on shape keys
 - Preserves driver expressions and variables
-- Updates self-references when objects are replaced
-- Restores all driver relationships
+- Restores driver relationships, including self-references to shape key data
 
 ## Requirements
 
@@ -58,6 +57,17 @@ For optimal results, ensure proper modifier order:
 
 Deformation modifiers (Displace, Wave, Shrinkwrap, etc.) placed before the Armature modifier may cause vertex count mismatches during shape key transfer.
 Modifiers that may change vertex count should also be handled with care.
+
+### Shared Mesh Data
+- Objects with shared (linked) mesh data are not supported. If multiple objects share the same mesh (e.g., created with Alt+D), you will be prompted to make them single-user first (Object > Relations > Make Single User > Object & Data).
+
+### Scene Scope
+- The addon processes all meshes across all scenes that reference the target armature, since `pose.armature_apply()` modifies the armature data block itself
+
+### Not Preserved
+The following data is **not** preserved by this addon:
+- **Shape key animation data**: Keyframes, Actions, and NLA strips on shape keys are not transferred. Apply this addon before creating shape key animations.
+- **Armature modifier custom properties**: Custom properties added to the Armature modifier itself will be lost. Standard modifier settings (preserve volume, vertex group, stack position, etc.) are restored.
 
 ## License
 

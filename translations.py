@@ -22,6 +22,7 @@ translations_dict = {
         ("*", "Error occurred: {error}"): "エラーが発生しました: {error}",
         ("*", "No meshes found with armature modifier"): "アーマチュアモディファイアを持つメッシュが見つかりません",
         ("*", "Object '{obj_name}' has multiple Armature modifiers"): "オブジェクト'{obj_name}'に複数のアーマチュアモディファイアがあります",
+        ("*", "Objects with shared mesh data are not supported. Make them single-user first: {mesh_list}"): "メッシュデータを共有しているオブジェクトはサポートされていません。先にシングルユーザー化してください: {mesh_list}",
         ("*", "Cannot transfer shape key '{shapekey_name}': vertex count mismatch ({base_count} vs {shapekey_count}). Check for modifiers that change vertex count (Decimate, Weld, etc.)."): "シェイプキー'{shapekey_name}'を転送できません: 頂点数が一致しません（{base_count} vs {shapekey_count}）。頂点数を変更するモディファイア（Decimate、Weldなど）を確認してください。",
         ("*", "Shape key transfer failed for '{shapekey_name}': expected {expected_keys} keys, got {actual_keys}"): "'{shapekey_name}'のシェイプキー転送に失敗しました: {expected_keys}個のキーを期待しましたが、{actual_keys}個でした",
         ("*", "Deformation modifiers before Armature modifier detected: {mesh_list}"): "アーマチュアモディファイアより前にデフォームモディファイアが検出されました: {mesh_list}",
