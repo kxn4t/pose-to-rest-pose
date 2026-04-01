@@ -3,16 +3,6 @@
 # licensed under GPL v3. The core pose-to-rest functionality and data management
 # systems are original implementations by kxn4t.
 
-bl_info = {
-    "name": "Pose to Rest Pose",
-    "author": "kxn4t",
-    "version": (0, 3, 0),
-    "blender": (3, 6, 0),
-    "location": "View3D > Pose Mode > Pose > Apply",
-    "description": "Apply current pose as rest pose while preserving shape keys and drivers",
-    "category": "Rigging",
-}
-
 import bpy
 from bpy.props import PointerProperty
 from typing import List, Dict, Any, Optional, Tuple
@@ -1097,14 +1087,14 @@ def register() -> None:
         poll=lambda self, obj: obj.type == "ARMATURE",
     )
     bpy.types.VIEW3D_MT_pose_apply.append(pose_apply_menu_func)
-    bpy.app.translations.register(__name__, translations_dict)
+    bpy.app.translations.register(__package__, translations_dict)
 
 
 def unregister() -> None:
     bpy.utils.unregister_class(POSE_TO_REST_OT_apply)
     del bpy.types.Scene.pose_to_rest_armature
     bpy.types.VIEW3D_MT_pose_apply.remove(pose_apply_menu_func)
-    bpy.app.translations.unregister(__name__)
+    bpy.app.translations.unregister(__package__)
 
 
 if __name__ == "__main__":
