@@ -1,0 +1,11 @@
+schema_version = "1.0.0"
+id = "pose_to_rest_pose"
+version = "0.4.0"
+name = "Pose to Rest Pose"
+tagline = "Apply pose as rest pose keeping shape keys and drivers"
+maintainer = "kxn4t"
+type = "add-on"
+blender_version_min = "4.2.0"
+website = "https://github.com/kxn4t/pose-to-rest-pose"
+license = ["SPDX:GPL-3.0-or-later"]
+tags = ["Rigging", "Animation"]

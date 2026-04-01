@@ -12,6 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-01
+
+### Changed
+
+- Migrate to Blender Extension format (Blender 4.2+ only)
+- Add `blender_manifest.toml` as the single source of version and metadata
+- Remove legacy `bl_info` dictionary
+- v0.3.0 is the final version supporting Blender 3.6–4.1
+
+### 変更
+
+- Blender Extension 形式に移行しました（Blender 4.2 以降専用）。
+- `blender_manifest.toml` をバージョン・メタデータの単一情報源とし、従来の `bl_info` を削除しました。
+- Blender 3.6〜4.1 をお使いの方は v0.3.0 をご利用ください。
+
 ## [0.3.0] - 2026-03-26
 
 ### Added

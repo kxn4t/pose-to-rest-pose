@@ -10,11 +10,10 @@ A Blender addon for applying the current pose as rest pose while preserving shap
 - **Multi-Mesh Support**: Handles multiple meshes affected by the same armature
 
 ## Installation
-
-1. Open Blender and go to Edit → Preferences → Add-ons
-2. Click "Install from Disk..."
-3. Select the downloaded `pose-to-rest-pose.zip` file
-4. Enable the addon by checking the box next to "Pose to Rest Pose" in the addon list
+1. Open Blender's "Edit" → "Preferences" → "Get Extensions"
+2. Open "Repositories" → click "+" → "Add Remote Repository"
+3. Enter the URL: `https://kxn4t.github.io/blender-extensions/index.json`
+4. Search for "Pose to Rest Pose" and install
 
 ## Usage
 
@@ -44,8 +43,10 @@ This addon uses algorithms from [SKkeeper](https://github.com/smokejohn/SKkeeper
 - Restores driver relationships, including self-references to shape key data
 
 ## Requirements
+Blender 4.2.0 or higher
 
-- Blender 3.6 or higher
+> **Note:** For Blender 3.6–4.1, please use [v0.3.0](https://github.com/kxn4t/pose-to-rest-pose/releases/tag/v0.3.0) (final legacy version).
+
 - Meshes must have only one Armature modifier per target armature
 
 ## Limitations & Best Practices

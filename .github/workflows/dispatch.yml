@@ -1,0 +1,37 @@
+name: Dispatch to Extensions Repo
+on:
+  release:
+    types: [published]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Set addon ID
+        id: addon
+        run: echo "ADDON_ID=$(grep '^id\s*=' blender_manifest.toml | sed 's/.*= *\"\(.*\)\"/\1/')" >> $GITHUB_OUTPUT
+
+      - name: Set version
+        id: version
+        run: echo "VERSION=${GITHUB_EVENT_RELEASE_TAG_NAME#v}" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_EVENT_RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
+
+      - name: Trigger extensions repo update
+        run: |
+          gh api repos/kxn4t/blender-extensions/dispatches \
+            -f event_type=update-extension \
+            -f "client_payload[addon_id]=$ADDON_ID" \
+            -f "client_payload[version]=$VERSION" \
+            -f "client_payload[repo]=$REPO" \
+            -f "client_payload[tag]=$TAG"
+        env:
+          GH_TOKEN: ${{ secrets.EXTENSIONS_REPO_TOKEN }}
+          ADDON_ID: ${{ steps.addon.outputs.ADDON_ID }}
+          VERSION: ${{ steps.version.outputs.VERSION }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.event.release.tag_name }}

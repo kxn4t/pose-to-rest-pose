@@ -20,10 +20,10 @@ jobs:
 
       - name: Create addon ZIP
         run: |
-          mkdir -p dist/pose-to-rest-pose
-          cp -r __init__.py translations.py CHANGELOG.md LICENSE* README* dist/pose-to-rest-pose/
+          mkdir -p dist/pose_to_rest_pose
+          cp -r __init__.py translations.py blender_manifest.toml CHANGELOG.md LICENSE* README* dist/pose_to_rest_pose/
           cd dist
-          zip -r "pose-to-rest-pose_${{ steps.version.outputs.VERSION }}.zip" pose-to-rest-pose/ \
+          zip -r "pose_to_rest_pose-${{ steps.version.outputs.VERSION }}.zip" pose_to_rest_pose/ \
             -x "**/__pycache__/**" \
             -x "**/.DS_Store" \
             -x "**/*.pyc"
@@ -37,4 +37,4 @@ jobs:
           draft: true
           prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
           generate_release_notes: true
-          files: dist/pose-to-rest-pose_${{ steps.version.outputs.VERSION }}.zip
+          files: dist/pose_to_rest_pose-${{ steps.version.outputs.VERSION }}.zip
