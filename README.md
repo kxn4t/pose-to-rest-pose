@@ -52,12 +52,13 @@ Blender 4.2.0 or higher
 ## Limitations & Best Practices
 
 ### Modifier Order
-For optimal results, ensure proper modifier order:
-- ✅ **Recommended**: Armature Modifier → Other Deformation Modifiers
-- ❌ **Not Recommended**: Deformation Modifiers → Armature Modifier
+Only the Armature modifier is applied to the mesh data. Other modifiers stay on the object unchanged, so modifiers that change vertex count (Mirror, Subdivision Surface, etc.) do not cause vertex count mismatches.
+- ✅ **Recommended**: Armature Modifier → Other Modifiers
+- ❌ **Not Supported**: Deformation Modifiers → Armature Modifier
 
-Deformation modifiers (Displace, Wave, Shrinkwrap, etc.) placed before the Armature modifier may cause vertex count mismatches during shape key transfer.
-Modifiers that may change vertex count should also be handled with care.
+If a deformation modifier (Displace, Wave, Shrinkwrap, etc.) is placed before the Armature modifier, the operation is cancelled. After the pose is applied as the rest pose, such a modifier would act on the posed shape instead of the original one, changing the result.
+
+A Mirror modifier placed before the Armature modifier is allowed, but the result is correct only for symmetric poses: only the original half is posed, and the other side becomes its mirror image. A warning is shown in this case.
 
 ### Shared Mesh Data
 - Objects with shared (linked) mesh data are not supported. If multiple objects share the same mesh (e.g., created with Alt+D), you will be prompted to make them single-user first (Object > Relations > Make Single User > Object & Data).
