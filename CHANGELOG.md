@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix deformation modifiers placed after the Armature modifier (Displace, Shrinkwrap, Simple Deform, etc.) being baked into shape keys and applied twice
+- Fix restore failure warnings being hidden behind the success message in the status bar, and add a Japanese translation for them
 
 ### 追加
 
@@ -37,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 修正
 
 - アーマチュアモディファイアより後ろにある変形モディファイア（ディスプレイス、シュリンクラップ、シンプル変形など）の効果がシェイプキーに焼き込まれ、二重にかかる問題を修正しました。
+- 復元に失敗したときの警告が、ステータスバーで完了メッセージに隠れてしまう問題を修正しました。あわせて日本語訳を追加しています。
 
 ## [0.4.0] - 2026-04-01
 

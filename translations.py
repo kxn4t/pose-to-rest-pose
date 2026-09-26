@@ -30,6 +30,7 @@ translations_dict = {
         ("*", "Shape key '{shapekey_name}': {error}"): "シェイプキー'{shapekey_name}': {error}",
 
         # Warning messages
+        ("*", "Partial restore failures: {errors}"): "一部の復元に失敗しました: {errors}",
         ("*", "Mirror modifier before Armature modifier: {mesh_list}. The result is correct only for symmetric poses"): "アーマチュアモディファイアより前にミラーモディファイアがあります: {mesh_list}。左右対称のポーズでのみ正しい結果になります",
         
         # Success messages

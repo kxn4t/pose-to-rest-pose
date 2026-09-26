@@ -1054,19 +1054,27 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             if restore_errors:
                 error_summary = "; ".join(restore_errors)
                 log(f"Restore errors: {error_summary}")
-                self.report({"WARNING"}, f"Partial restore failures: {error_summary}")
+                warnings.append(
+                    bpy.app.translations.pgettext(
+                        "Partial restore failures: {errors}"
+                    ).format(errors=error_summary)
+                )
 
             # Step 7: Finalize
             self._finalize_operation(
                 context, original_state, armature, processed_meshes
             )
 
-            # Report after the success message so the warning stays visible
+            # The status bar shows only the latest report, so report warnings
+            # after the success message to keep them visible
             for warning in warnings:
                 self.report({"WARNING"}, warning)
 
         except Exception as e:
             log(f"Error in post-destructive zone: {e}")
+            # Report pending warnings before the error so they are not lost
+            for warning in warnings:
+                self.report({"WARNING"}, warning)
             error_msg = bpy.app.translations.pgettext(
                 "Error occurred: {error}"
             ).format(error=e)
