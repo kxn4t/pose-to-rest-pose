@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Show a warning when a Mirror modifier is placed before the Armature modifier, since the result is correct only for symmetric poses
 
+### Changed
+
+- Remove the claim that shape key custom properties are preserved, along with the handling code that had no effect (shape keys cannot hold custom properties)
+
 ### Fixed
 
 - Fix deformation modifiers placed after the Armature modifier (Displace, Shrinkwrap, Simple Deform, etc.) being baked into shape keys and applied twice
@@ -23,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 追加
 
 - アーマチュアモディファイアより前にミラーモディファイアがある場合に警告を表示するようにしました（左右対称のポーズでのみ正しい結果になるため）。
+
+### 変更
+
+- シェイプキーのカスタムプロパティを保持するという記載と、実際には効果のなかった処理を削除しました（シェイプキーはカスタムプロパティを持てないため）。
 
 ### 修正
 

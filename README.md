@@ -5,7 +5,7 @@ A Blender addon for applying the current pose as rest pose while preserving shap
 ## Features
 
 - **One-Click Operation**: Apply current pose as rest pose directly from the Pose menu
-- **Shape Key Preservation**: Maintains all shape keys including values, slider ranges, mute states, and custom properties
+- **Shape Key Preservation**: Maintains all shape keys including values, slider ranges, mute states, relative keys, and vertex groups
 - **Driver Support**: Preserves shape key drivers and automatically updates self-references
 - **Multi-Mesh Support**: Handles multiple meshes affected by the same armature
 

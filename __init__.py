@@ -300,26 +300,16 @@ def apply_armature_modifier_only(
 
 
 class ShapeKeyManager:
-    """Manages shape key properties and custom data"""
+    """Manages shape key properties"""
 
     @staticmethod
     def store_properties(obj: bpy.types.Object) -> Optional[ShapeKeyDataList]:
-        """Store all shape key properties including custom properties"""
+        """Store all shape key properties"""
         if not obj.data.shape_keys:
             return None
 
         shape_key_data = []
         for sk in obj.data.shape_keys.key_blocks:
-            # Safely get custom properties
-            custom_props = {}
-            try:
-                if hasattr(sk, "keys"):
-                    custom_props = {
-                        key: sk[key] for key in sk.keys() if not key.startswith("_")
-                    }
-            except (TypeError, AttributeError):
-                custom_props = {}
-
             sk_data = {
                 "name": sk.name,
                 "value": sk.value,
@@ -329,7 +319,6 @@ class ShapeKeyManager:
                 "interpolation": sk.interpolation,
                 "relative_key": sk.relative_key.name if sk.relative_key else None,
                 "vertex_group": sk.vertex_group,
-                "custom_properties": custom_props,
             }
             shape_key_data.append(sk_data)
         return shape_key_data
@@ -338,7 +327,7 @@ class ShapeKeyManager:
     def restore_properties(
         obj: bpy.types.Object, shape_key_data: Optional[ShapeKeyDataList]
     ) -> None:
-        """Restore shape key properties including custom properties"""
+        """Restore shape key properties"""
         if not shape_key_data or not obj.data.shape_keys:
             return
 
@@ -359,13 +348,6 @@ class ShapeKeyManager:
                         if ref_sk.name == sk_data["relative_key"]:
                             sk.relative_key = ref_sk
                             break
-
-                # Restore custom properties
-                try:
-                    for key, value in sk_data["custom_properties"].items():
-                        sk[key] = value
-                except (TypeError, AttributeError):
-                    log(f"Could not restore custom properties for shape key {sk.name}")
 
 
 class DriverManager:
