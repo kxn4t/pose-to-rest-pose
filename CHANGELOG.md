@@ -12,9 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Show a warning when a Mirror modifier is placed before the Armature modifier, since the result is correct only for symmetric poses
+
 ### Fixed
 
 - Fix deformation modifiers placed after the Armature modifier (Displace, Shrinkwrap, Simple Deform, etc.) being baked into shape keys and applied twice
+
+### 追加
+
+- アーマチュアモディファイアより前にミラーモディファイアがある場合に警告を表示するようにしました（左右対称のポーズでのみ正しい結果になるため）。
 
 ### 修正
 

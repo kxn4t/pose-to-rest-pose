@@ -28,6 +28,9 @@ translations_dict = {
         ("*", "Deformation modifiers before Armature modifier detected: {mesh_list}"): "アーマチュアモディファイアより前にデフォームモディファイアが検出されました: {mesh_list}",
         ("*", "Cannot transfer shape key '{shapekey_name}': vertex count mismatch after modifiers"): "シェイプキー'{shapekey_name}'を転送できません: モディファイア後の頂点数が一致しません",
         ("*", "Shape key '{shapekey_name}': {error}"): "シェイプキー'{shapekey_name}': {error}",
+
+        # Warning messages
+        ("*", "Mirror modifier before Armature modifier: {mesh_list}. The result is correct only for symmetric poses"): "アーマチュアモディファイアより前にミラーモディファイアがあります: {mesh_list}。左右対称のポーズでのみ正しい結果になります",
         
         # Success messages
         ("*", "Applied pose as rest for {armature_name} and processed {mesh_count} meshes"): "{armature_name}にポーズを適用し、{mesh_count}個のメッシュを処理しました",

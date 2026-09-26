@@ -582,22 +582,20 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
 
         return affected_meshes
 
+    @staticmethod
+    def modifiers_before_armature(
+        obj: bpy.types.Object, armature: bpy.types.Object
+    ) -> List[bpy.types.Modifier]:
+        """Return the modifiers stacked above the armature modifier"""
+        for i, mod in enumerate(obj.modifiers):
+            if mod.type == "ARMATURE" and mod.object == armature:
+                return list(obj.modifiers[:i])
+        return []
+
     def has_modifier_order_issue(
         self, obj: bpy.types.Object, armature: bpy.types.Object
     ) -> bool:
         """Check if deformation modifiers come before armature modifier"""
-        arm_index = next(
-            (
-                i
-                for i, mod in enumerate(obj.modifiers)
-                if mod.type == "ARMATURE" and mod.object == armature
-            ),
-            -1,
-        )
-
-        if arm_index == -1:
-            return False
-
         deformation_mods = {
             "MESH_DEFORM",
             "LATTICE",
@@ -613,7 +611,35 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             "SIMPLE_DEFORM",
         }
 
-        return any(mod.type in deformation_mods for mod in obj.modifiers[:arm_index])
+        return any(
+            mod.type in deformation_mods
+            for mod in self.modifiers_before_armature(obj, armature)
+        )
+
+    def collect_warnings(
+        self, affected_meshes: MeshObjectList, armature: bpy.types.Object
+    ) -> List[str]:
+        """Collect non-fatal issues to report after the operation succeeds"""
+        warnings = []
+
+        # Only the original half is posed; the Mirror modifier then copies it
+        # to the other side, which is correct only for symmetric poses.
+        mirror_meshes = [
+            obj.name
+            for obj in affected_meshes
+            if any(
+                mod.type == "MIRROR"
+                for mod in self.modifiers_before_armature(obj, armature)
+            )
+        ]
+        if mirror_meshes:
+            warnings.append(
+                bpy.app.translations.pgettext(
+                    "Mirror modifier before Armature modifier: {mesh_list}. The result is correct only for symmetric poses"
+                ).format(mesh_list=", ".join(mirror_meshes))
+            )
+
+        return warnings
 
     def _prepare_shape_keys_with_pose(
         self, obj: bpy.types.Object, armature: bpy.types.Object
@@ -974,6 +1000,7 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
         original_state = None
         armature = None
         pending_changes = None
+        warnings: List[str] = []
 
         try:
             # === PRE-DESTRUCTIVE ZONE — CANCELLED is safe ===
@@ -984,6 +1011,7 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
                 return {"CANCELLED"}
 
             armature, affected_meshes = validation_result
+            warnings = self.collect_warnings(affected_meshes, armature)
 
             # Step 2: Collect and store data
             driver_states, saved_armature_modifiers = self._collect_and_store_data(
@@ -1050,6 +1078,10 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             self._finalize_operation(
                 context, original_state, armature, processed_meshes
             )
+
+            # Report after the success message so the warning stays visible
+            for warning in warnings:
+                self.report({"WARNING"}, warning)
 
         except Exception as e:
             log(f"Error in post-destructive zone: {e}")
