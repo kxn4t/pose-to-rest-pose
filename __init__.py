@@ -647,6 +647,10 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
                     shapekey_obj = copy_object(obj, f"shapekey_{shapekey_index}")
                     apply_shape_key(shapekey_obj, shapekey_index)
                     apply_armature_modifier_only(shapekey_obj, armature)
+                    # join_shapes reads the evaluated deform mesh, so remaining
+                    # deform modifiers would be baked into the shape key and
+                    # then applied again at runtime.
+                    shapekey_obj.modifiers.clear()
 
                     validate_vertex_count_compatibility(
                         receiver, shapekey_obj, shapekey_name

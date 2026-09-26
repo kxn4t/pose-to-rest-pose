@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix deformation modifiers placed after the Armature modifier (Displace, Shrinkwrap, Simple Deform, etc.) being baked into shape keys and applied twice
+
+### 修正
+
+- アーマチュアモディファイアより後ろにある変形モディファイア（ディスプレイス、シュリンクラップ、シンプル変形など）の効果がシェイプキーに焼き込まれ、二重にかかる問題を修正しました。
+
 ## [0.4.0] - 2026-04-01
 
 ### Changed
