@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove the claim that shape key custom properties are preserved, along with the handling code that had no effect (shape keys cannot hold custom properties)
 - Clarify the modifier order section in README: explain the actual reason deformation modifiers before the Armature modifier are rejected, and document the Mirror modifier limitation
+- Remove the misleading hint about vertex-count-changing modifiers (Decimate, Weld, etc.) from the vertex count mismatch error, since only the Armature modifier is applied
 
 ### Fixed
 
@@ -34,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - シェイプキーのカスタムプロパティを保持するという記載と、実際には効果のなかった処理を削除しました（シェイプキーはカスタムプロパティを持てないため）。
 - README のモディファイア順序の説明を修正しました。アーマチュアモディファイアより前の変形モディファイアを拒否する実際の理由を記載し、ミラーモディファイアの制限事項を追記しています。
+- 頂点数が一致しないときのエラーメッセージから、頂点数を変更するモディファイア（Decimate、Weld など）を確認するよう促す文を削除しました。適用するのはアーマチュアモディファイアだけなので、これらは原因にならないためです。
 
 ### 修正
 

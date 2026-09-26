@@ -230,7 +230,7 @@ def validate_vertex_count_compatibility(
 
     if base_vertex_count != shapekey_vertex_count:
         error_msg = bpy.app.translations.pgettext(
-            "Cannot transfer shape key '{shapekey_name}': vertex count mismatch ({base_count} vs {shapekey_count}). Check for modifiers that change vertex count (Decimate, Weld, etc.)."
+            "Cannot transfer shape key '{shapekey_name}': vertex count mismatch ({base_count} vs {shapekey_count})"
         ).format(
             shapekey_name=shapekey_name,
             base_count=base_vertex_count,
