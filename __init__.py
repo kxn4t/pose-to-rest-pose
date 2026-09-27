@@ -230,7 +230,7 @@ def validate_vertex_count_compatibility(
 
     if base_vertex_count != shapekey_vertex_count:
         error_msg = bpy.app.translations.pgettext(
-            "Cannot transfer shape key '{shapekey_name}': vertex count mismatch ({base_count} vs {shapekey_count}). Check for modifiers that change vertex count (Decimate, Weld, etc.)."
+            "Cannot transfer shape key '{shapekey_name}': vertex count mismatch ({base_count} vs {shapekey_count})"
         ).format(
             shapekey_name=shapekey_name,
             base_count=base_vertex_count,
@@ -300,26 +300,16 @@ def apply_armature_modifier_only(
 
 
 class ShapeKeyManager:
-    """Manages shape key properties and custom data"""
+    """Manages shape key properties"""
 
     @staticmethod
     def store_properties(obj: bpy.types.Object) -> Optional[ShapeKeyDataList]:
-        """Store all shape key properties including custom properties"""
+        """Store all shape key properties"""
         if not obj.data.shape_keys:
             return None
 
         shape_key_data = []
         for sk in obj.data.shape_keys.key_blocks:
-            # Safely get custom properties
-            custom_props = {}
-            try:
-                if hasattr(sk, "keys"):
-                    custom_props = {
-                        key: sk[key] for key in sk.keys() if not key.startswith("_")
-                    }
-            except (TypeError, AttributeError):
-                custom_props = {}
-
             sk_data = {
                 "name": sk.name,
                 "value": sk.value,
@@ -329,7 +319,6 @@ class ShapeKeyManager:
                 "interpolation": sk.interpolation,
                 "relative_key": sk.relative_key.name if sk.relative_key else None,
                 "vertex_group": sk.vertex_group,
-                "custom_properties": custom_props,
             }
             shape_key_data.append(sk_data)
         return shape_key_data
@@ -338,7 +327,7 @@ class ShapeKeyManager:
     def restore_properties(
         obj: bpy.types.Object, shape_key_data: Optional[ShapeKeyDataList]
     ) -> None:
-        """Restore shape key properties including custom properties"""
+        """Restore shape key properties"""
         if not shape_key_data or not obj.data.shape_keys:
             return
 
@@ -359,13 +348,6 @@ class ShapeKeyManager:
                         if ref_sk.name == sk_data["relative_key"]:
                             sk.relative_key = ref_sk
                             break
-
-                # Restore custom properties
-                try:
-                    for key, value in sk_data["custom_properties"].items():
-                        sk[key] = value
-                except (TypeError, AttributeError):
-                    log(f"Could not restore custom properties for shape key {sk.name}")
 
 
 class DriverManager:
@@ -582,22 +564,20 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
 
         return affected_meshes
 
+    @staticmethod
+    def modifiers_before_armature(
+        obj: bpy.types.Object, armature: bpy.types.Object
+    ) -> List[bpy.types.Modifier]:
+        """Return the modifiers stacked above the armature modifier"""
+        for i, mod in enumerate(obj.modifiers):
+            if mod.type == "ARMATURE" and mod.object == armature:
+                return list(obj.modifiers[:i])
+        return []
+
     def has_modifier_order_issue(
         self, obj: bpy.types.Object, armature: bpy.types.Object
     ) -> bool:
         """Check if deformation modifiers come before armature modifier"""
-        arm_index = next(
-            (
-                i
-                for i, mod in enumerate(obj.modifiers)
-                if mod.type == "ARMATURE" and mod.object == armature
-            ),
-            -1,
-        )
-
-        if arm_index == -1:
-            return False
-
         deformation_mods = {
             "MESH_DEFORM",
             "LATTICE",
@@ -613,7 +593,35 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             "SIMPLE_DEFORM",
         }
 
-        return any(mod.type in deformation_mods for mod in obj.modifiers[:arm_index])
+        return any(
+            mod.type in deformation_mods
+            for mod in self.modifiers_before_armature(obj, armature)
+        )
+
+    def collect_warnings(
+        self, affected_meshes: MeshObjectList, armature: bpy.types.Object
+    ) -> List[str]:
+        """Collect non-fatal issues to report after the operation succeeds"""
+        warnings = []
+
+        # Only the original half is posed; the Mirror modifier then copies it
+        # to the other side, which is correct only for symmetric poses.
+        mirror_meshes = [
+            obj.name
+            for obj in affected_meshes
+            if any(
+                mod.type == "MIRROR"
+                for mod in self.modifiers_before_armature(obj, armature)
+            )
+        ]
+        if mirror_meshes:
+            warnings.append(
+                bpy.app.translations.pgettext(
+                    "Mirror modifier before Armature modifier: {mesh_list}. The result is correct only for symmetric poses"
+                ).format(mesh_list=", ".join(mirror_meshes))
+            )
+
+        return warnings
 
     def _prepare_shape_keys_with_pose(
         self, obj: bpy.types.Object, armature: bpy.types.Object
@@ -647,6 +655,10 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
                     shapekey_obj = copy_object(obj, f"shapekey_{shapekey_index}")
                     apply_shape_key(shapekey_obj, shapekey_index)
                     apply_armature_modifier_only(shapekey_obj, armature)
+                    # join_shapes reads the evaluated deform mesh, so remaining
+                    # deform modifiers would be baked into the shape key and
+                    # then applied again at runtime.
+                    shapekey_obj.modifiers.clear()
 
                     validate_vertex_count_compatibility(
                         receiver, shapekey_obj, shapekey_name
@@ -970,6 +982,7 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
         original_state = None
         armature = None
         pending_changes = None
+        warnings: List[str] = []
 
         try:
             # === PRE-DESTRUCTIVE ZONE — CANCELLED is safe ===
@@ -980,6 +993,7 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
                 return {"CANCELLED"}
 
             armature, affected_meshes = validation_result
+            warnings = self.collect_warnings(affected_meshes, armature)
 
             # Step 2: Collect and store data
             driver_states, saved_armature_modifiers = self._collect_and_store_data(
@@ -1040,15 +1054,27 @@ class POSE_TO_REST_OT_apply(bpy.types.Operator):
             if restore_errors:
                 error_summary = "; ".join(restore_errors)
                 log(f"Restore errors: {error_summary}")
-                self.report({"WARNING"}, f"Partial restore failures: {error_summary}")
+                warnings.append(
+                    bpy.app.translations.pgettext(
+                        "Partial restore failures: {errors}"
+                    ).format(errors=error_summary)
+                )
 
             # Step 7: Finalize
             self._finalize_operation(
                 context, original_state, armature, processed_meshes
             )
 
+            # The status bar shows only the latest report, so report warnings
+            # after the success message to keep them visible
+            for warning in warnings:
+                self.report({"WARNING"}, warning)
+
         except Exception as e:
             log(f"Error in post-destructive zone: {e}")
+            # Report pending warnings before the error so they are not lost
+            for warning in warnings:
+                self.report({"WARNING"}, warning)
             error_msg = bpy.app.translations.pgettext(
                 "Error occurred: {error}"
             ).format(error=e)
