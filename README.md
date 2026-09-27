@@ -9,6 +9,11 @@ A Blender addon for applying the current pose as rest pose while preserving shap
 - **Driver Support**: Preserves shape key drivers and automatically updates self-references
 - **Multi-Mesh Support**: Handles multiple meshes affected by the same armature
 
+## Requirements
+Blender 4.2.0 or higher
+
+> **Note:** For Blender 3.6–4.1, please use [v0.3.0](https://github.com/kxn4t/pose-to-rest-pose/releases/tag/v0.3.0) (final legacy version).
+
 ## Installation
 1. Open Blender's "Edit" → "Preferences" → "Get Extensions"
 2. Open "Repositories" → click "+" → "Add Remote Repository"
@@ -16,60 +21,52 @@ A Blender addon for applying the current pose as rest pose while preserving shap
 4. Search for "Pose to Rest Pose" and install
 
 ## Usage
-
-### Basic Usage
 1. Select your armature and enter **Pose Mode**
 2. Position your armature in the desired pose
 3. Go to **Pose > Apply > Apply Current Pose as Rest Pose**
 
+### What Happens Automatically
 The addon will automatically:
 - Detect all meshes with Armature modifiers targeting the selected armature, including those in other scenes
 - Preserve all shape keys and their properties
 - Apply the current pose to the armature's rest position
-- Restore all modifiers and drivers
+- Restore the Armature modifier and drivers
+
+## Limitations & Notes
+
+### Modifier Order and Support
+This addon applies only the Armature modifier to the mesh data. Other modifiers stay unchanged, so modifiers such as Mirror or Subdivision Surface do not cause vertex count mismatches.
+
+| Setup | Behavior | Details |
+| :--- | :--- | :--- |
+| **Armature → Other modifiers** | ✅ Works (recommended) | The ideal modifier order. |
+| **Deformation → Armature** | ❌ Cancelled | If a deformation modifier such as Displace or Shrinkwrap comes before the Armature modifier, the result would change after the pose is applied, so the operation is cancelled for safety. |
+| **Mirror → Armature** | ⚠️ Warning | The operation runs, but only the original half is posed and the other side becomes a flipped copy of it, so the result is correct **only for symmetric poses**. |
+
+> **Note:** Each mesh can have only one Armature modifier targeting the same armature.
+
+### Other Limitations
+- **Shared mesh data (linked duplicates)**: Objects sharing mesh data (e.g., created with `Alt+D`) are not supported. Make them independent first via "Object > Relations > Make Single User > Object & Data".
+- **Multiple scenes**: Since `pose.armature_apply()` modifies the armature data itself, the addon checks all scenes in the blend file and processes every target mesh at once.
+
+### Not Preserved
+The following data is reset or removed when applying:
+- **Shape key animation data**: Keyframes, Actions, and NLA strips on shape keys are not transferred. Apply this addon before creating shape key animations.
+- **Armature modifier custom properties**: Custom properties added to the Armature modifier itself will be lost. Standard modifier settings (preserve volume, vertex group, stack position, etc.) are restored.
 
 ## Technical Details
 
 ### Shape Key Processing
-This addon uses algorithms from [SKkeeper](https://github.com/smokejohn/SKkeeper) to:
-- Create temporary copies of each shape key
-- Apply the armature modifier with the current pose
-- Transfer shape keys back to the base mesh
-- Maintain all shape key properties and relationships
+Based on the [SKkeeper](https://github.com/smokejohn/SKkeeper) algorithm, this addon:
+- Creates temporary copies of each shape key
+- Applies the Armature modifier in the current pose
+- Transfers each shape key to the base mesh
+- Rebuilds all shape key properties and relationships
 
 ### Driver Handling
 - Automatically detects existing drivers on shape keys
 - Preserves driver expressions and variables
-- Restores driver relationships, including self-references to shape key data
-
-## Requirements
-Blender 4.2.0 or higher
-
-> **Note:** For Blender 3.6–4.1, please use [v0.3.0](https://github.com/kxn4t/pose-to-rest-pose/releases/tag/v0.3.0) (final legacy version).
-
-- Meshes must have only one Armature modifier per target armature
-
-## Limitations & Best Practices
-
-### Modifier Order
-Only the Armature modifier is applied to the mesh data. Other modifiers stay on the object unchanged, so modifiers that change vertex count (Mirror, Subdivision Surface, etc.) do not cause vertex count mismatches.
-- ✅ **Recommended**: Armature Modifier → Other Modifiers
-- ❌ **Not Supported**: Deformation Modifiers → Armature Modifier
-
-If a deformation modifier (Displace, Wave, Shrinkwrap, etc.) is placed before the Armature modifier, the operation is cancelled. After the pose is applied as the rest pose, such a modifier would act on the posed shape instead of the original one, changing the result.
-
-A Mirror modifier placed before the Armature modifier is allowed, but the result is correct only for symmetric poses: only the original half is posed, and the other side becomes its mirror image. A warning is shown in this case.
-
-### Shared Mesh Data
-- Objects with shared (linked) mesh data are not supported. If multiple objects share the same mesh (e.g., created with Alt+D), you will be prompted to make them single-user first (Object > Relations > Make Single User > Object & Data).
-
-### Scene Scope
-- The addon processes all meshes across all scenes that reference the target armature, since `pose.armature_apply()` modifies the armature data block itself
-
-### Not Preserved
-The following data is **not** preserved by this addon:
-- **Shape key animation data**: Keyframes, Actions, and NLA strips on shape keys are not transferred. Apply this addon before creating shape key animations.
-- **Armature modifier custom properties**: Custom properties added to the Armature modifier itself will be lost. Standard modifier settings (preserve volume, vertex group, stack position, etc.) are restored.
+- Reconnects the original references, including self-references to shape key data
 
 ## License
 
