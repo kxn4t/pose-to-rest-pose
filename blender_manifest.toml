@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "pose_to_rest_pose"
-version = "0.4.0"
+version = "0.5.0"
 name = "Pose to Rest Pose"
 tagline = "Apply pose as rest pose keeping shape keys and drivers"
 maintainer = "kxn4t"
